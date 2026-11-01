@@ -38,6 +38,10 @@ Create the Party Mode helper as a **Toggle** under **Settings → Devices & serv
 - Disinfection heating is subject to the same surplus-power thresholds as normal heating; without enough solar surplus, it waits for suitable power rather than forcing the heater on.
 - Check the actual sensor and switch entity IDs in each automation against your Home Assistant installation.
 
+### Known issue: trace viewer errors
+
+In the automation trace timeline, conditions (for example in the `if` blocks of `Resistiv Water Heater - Heater Control.yaml`) may show `Error in describing condition: can't access property "includes" of undefined` (or `Cannot read properties of undefined (reading 'includes')` in Chrome). This is a Home Assistant **frontend display bug** and does not affect the automations: the conditions are evaluated correctly and the result is shown beneath the error. See [home-assistant/frontend#54871](https://github.com/home-assistant/frontend/issues/54871) (reported against core 2026.10.1); this project is not tracking or fixing it.
+
 ### AI assistance
 
 This project was partially developed and optimized with the assistance of AI. Review and validate the automations against your Home Assistant setup before use.
