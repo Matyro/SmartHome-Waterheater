@@ -11,17 +11,13 @@ triggers:
     event: start
 conditions:
   - condition: template
-    value_template: "{{ is_number(states('sensor.keller_heizung_kessel_ntc')) }}"
-variables:
-  temp: "{{ states('sensor.keller_heizung_kessel_ntc') | float }}"
-  # An unset or invalid datetime counts as due.
-  due: >-
-    {{ as_timestamp(states('input_datetime.water_heater_last_legionella_cycle'), default=0)
-       <= now().timestamp() - 7 * 24 * 3600 }}
+    value_template: '{{ is_number(states(''sensor.keller_heizung_kessel_ntc'')) }}'
 actions:
   - choose:
       - alias: Disinfection complete
-        conditions: "{{ due and temp > 62 }}"
+        conditions:
+          - condition: template
+            value_template: '{{ due and temp > 62 }}'
         sequence:
           - action: input_boolean.turn_off
             target:
@@ -30,17 +26,27 @@ actions:
             target:
               entity_id: input_datetime.water_heater_last_legionella_cycle
             data:
-              timestamp: "{{ now().timestamp() }}"
+              timestamp: '{{ now().timestamp() }}'
       - alias: Warm enough, no disinfection due
-        conditions: "{{ not due and temp > 55 }}"
+        conditions:
+          - condition: template
+            value_template: '{{ not due and temp > 55 }}'
         sequence:
           - action: input_boolean.turn_off
             target:
               entity_id: input_boolean.water_heater_needs_heat
       - alias: Cold or disinfection due
-        conditions: "{{ due or temp < 45 }}"
+        conditions:
+          - condition: template
+            value_template: '{{ due or temp < 45 }}'
         sequence:
           - action: input_boolean.turn_on
             target:
               entity_id: input_boolean.water_heater_needs_heat
+variables:
+  temp: '{{ states(''sensor.keller_heizung_kessel_ntc'') | float }}'
+  due: >-
+    {{ as_timestamp(states('input_datetime.water_heater_last_legionella_cycle'),
+    default=0)
+       <= now().timestamp() - 7 * 24 * 3600 }}
 mode: single

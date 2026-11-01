@@ -15,24 +15,13 @@ triggers:
       - binary_sensor.keller_heizung_kessel_ntc_fault
       - binary_sensor.keller_heizung_heizstab_ntc_fault
     not_to: 'off'
-  # Any change, so clearing the fault re-latches it while the cause persists.
   - trigger: state
     entity_id: input_boolean.water_heater_fault
   - trigger: homeassistant
     event: start
-variables:
-  temp_high: >-
-    {{ is_number(states('sensor.keller_heizung_kessel_ntc'))
-       and states('sensor.keller_heizung_kessel_ntc') | float > 65 }}
-  energy_high: >-
-    {{ states('input_number.water_heater_cycle_energy_kwh') | float(0) > 10 }}
-  sensor_fault: >-
-    {{ not is_state('binary_sensor.keller_heizung_kessel_ntc_fault', 'off')
-       or not is_state('binary_sensor.keller_heizung_heizstab_ntc_fault', 'off') }}
-  newly_latched: "{{ is_state('input_boolean.water_heater_fault', 'off') }}"
 conditions:
   - condition: template
-    value_template: >-
+    value_template: |-
       {{ temp_high or energy_high or sensor_fault
          or is_state('input_boolean.water_heater_fault', 'on') }}
 actions:
@@ -45,7 +34,9 @@ actions:
   - action: input_boolean.turn_off
     target:
       entity_id: input_boolean.water_heater_party_mode
-  - if: "{{ newly_latched }}"
+  - if:
+      - condition: template
+        value_template: '{{ newly_latched }}'
     then:
       - action: input_boolean.turn_on
         target:
@@ -55,10 +46,18 @@ actions:
           title: Resistiv Water Heater Fault Latched
           message: >-
             Heating is locked out until input_boolean.water_heater_fault is
-            manually cleared. Cause:
-            {{ [ 'tank above 65°C' if temp_high,
+            manually cleared. Cause: {{ [ 'tank above 65°C' if temp_high,
                  'estimated energy above 10 kWh' if energy_high,
                  'NTC sensor fault' if sensor_fault ] | select | join(', ') }}.
             Check both temperature sensors and the heater switches first.
+variables:
+  temp_high: |-
+    {{ is_number(states('sensor.keller_heizung_kessel_ntc'))
+       and states('sensor.keller_heizung_kessel_ntc') | float > 65 }}
+  energy_high: '{{ states(''input_number.water_heater_cycle_energy_kwh'') | float(0) > 10 }}'
+  sensor_fault: |-
+    {{ not is_state('binary_sensor.keller_heizung_kessel_ntc_fault', 'off')
+       or not is_state('binary_sensor.keller_heizung_heizstab_ntc_fault', 'off') }}
+  newly_latched: '{{ is_state(''input_boolean.water_heater_fault'', ''off'') }}'
 mode: queued
 max: 10

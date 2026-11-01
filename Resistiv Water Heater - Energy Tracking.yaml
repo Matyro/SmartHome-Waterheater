@@ -9,12 +9,6 @@ triggers:
   - trigger: time
     at: '00:01:00'
     id: reset
-variables:
-  active_phases: >-
-    {{ expand('switch.controllino_maxi_heater_phase_1',
-              'switch.controllino_maxi_heater_phase_2',
-              'switch.controllino_maxi_heater_phase_3')
-       | selectattr('state', 'eq', 'on') | list | count }}
 actions:
   - choose:
       - alias: Daily reset
@@ -35,14 +29,21 @@ actions:
           - condition: trigger
             id: tick
           - condition: template
-            value_template: "{{ active_phases > 0 }}"
+            value_template: '{{ active_phases > 0 }}'
         sequence:
           - action: input_number.set_value
             target:
               entity_id: input_number.water_heater_cycle_energy_kwh
             data:
               value: >-
-                {{ states('input_number.water_heater_cycle_energy_kwh') | float(0)
+                {{ states('input_number.water_heater_cycle_energy_kwh') |
+                float(0)
                    + active_phases / 60 }}
+variables:
+  active_phases: |-
+    {{ expand('switch.controllino_maxi_heater_phase_1',
+              'switch.controllino_maxi_heater_phase_2',
+              'switch.controllino_maxi_heater_phase_3')
+       | selectattr('state', 'eq', 'on') | list | count }}
 mode: queued
 max: 3

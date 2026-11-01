@@ -18,30 +18,37 @@ triggers:
       - binary_sensor.keller_heizung_kessel_ntc_fault
       - binary_sensor.keller_heizung_heizstab_ntc_fault
       - sensor.keller_heizung_kessel_ntc
-  # Re-evaluate the 2-minute surplus condition even if the power value stays constant.
   - trigger: time_pattern
     minutes: /1
   - trigger: homeassistant
     event: start
-variables:
-  temp: >-
-    {{ states('sensor.keller_heizung_kessel_ntc') | float
-       if is_number(states('sensor.keller_heizung_kessel_ntc')) else none }}
-  allowed: >-
-    {{ temp is not none and temp < 65
-       and is_state('input_boolean.water_heater_fault', 'off')
-       and is_state('binary_sensor.keller_heizung_kessel_ntc_fault', 'off')
-       and is_state('binary_sensor.keller_heizung_heizstab_ntc_fault', 'off') }}
-  party: >-
-    {{ allowed and temp < 55 and is_state('input_boolean.water_heater_party_mode', 'on') }}
 actions:
-  - if: "{{ temp is not none and temp >= 55 }}"
+  - alias: Clear Party Mode at 55°C or higher
+    if:
+      - condition: numeric_state
+        entity_id: sensor.keller_heizung_kessel_ntc
+        above: 54.999
     then:
       - action: input_boolean.turn_off
         target:
           entity_id: input_boolean.water_heater_party_mode
   - alias: Phase 3 (Party Mode only)
-    if: "{{ party }}"
+    if:
+      - condition: numeric_state
+        entity_id: sensor.keller_heizung_kessel_ntc
+        below: 55
+      - condition: state
+        entity_id: input_boolean.water_heater_party_mode
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.water_heater_fault
+        state: 'off'
+      - condition: state
+        entity_id: binary_sensor.keller_heizung_kessel_ntc_fault
+        state: 'off'
+      - condition: state
+        entity_id: binary_sensor.keller_heizung_heizstab_ntc_fault
+        state: 'off'
     then:
       - action: switch.turn_on
         target:
@@ -52,12 +59,28 @@ actions:
           entity_id: switch.controllino_maxi_heater_phase_3
   - alias: Phase 1
     if:
-      - condition: template
-        value_template: "{{ allowed }}"
+      - condition: numeric_state
+        entity_id: sensor.keller_heizung_kessel_ntc
+        below: 65
+      - condition: state
+        entity_id: input_boolean.water_heater_fault
+        state: 'off'
+      - condition: state
+        entity_id: binary_sensor.keller_heizung_kessel_ntc_fault
+        state: 'off'
+      - condition: state
+        entity_id: binary_sensor.keller_heizung_heizstab_ntc_fault
+        state: 'off'
       - condition: or
         conditions:
-          - condition: template
-            value_template: "{{ party }}"
+          - condition: and
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.keller_heizung_kessel_ntc
+                below: 55
+              - condition: state
+                entity_id: input_boolean.water_heater_party_mode
+                state: 'on'
           - condition: and
             conditions:
               - condition: state
@@ -87,12 +110,28 @@ actions:
           entity_id: switch.controllino_maxi_heater_phase_1
   - alias: Phase 2
     if:
-      - condition: template
-        value_template: "{{ allowed }}"
+      - condition: numeric_state
+        entity_id: sensor.keller_heizung_kessel_ntc
+        below: 65
+      - condition: state
+        entity_id: input_boolean.water_heater_fault
+        state: 'off'
+      - condition: state
+        entity_id: binary_sensor.keller_heizung_kessel_ntc_fault
+        state: 'off'
+      - condition: state
+        entity_id: binary_sensor.keller_heizung_heizstab_ntc_fault
+        state: 'off'
       - condition: or
         conditions:
-          - condition: template
-            value_template: "{{ party }}"
+          - condition: and
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.keller_heizung_kessel_ntc
+                below: 55
+              - condition: state
+                entity_id: input_boolean.water_heater_party_mode
+                state: 'on'
           - condition: and
             conditions:
               - condition: state
