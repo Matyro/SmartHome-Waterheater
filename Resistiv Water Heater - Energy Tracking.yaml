@@ -1,4 +1,4 @@
-alias: Water Heater - Energy Tracking
+alias: Resistiv Water Heater - Energy Tracking
 description: >-
   Estimate energy (1 kW per active phase, every minute) and reset the total at
   00:01 unless a fault is latched.

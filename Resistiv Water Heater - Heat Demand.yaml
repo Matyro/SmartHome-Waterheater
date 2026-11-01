@@ -1,4 +1,4 @@
-alias: Water Heater - Heat Demand
+alias: Resistiv Water Heater - Heat Demand
 description: >-
   Set or clear normal heat demand (below 45°C on, above 55°C off) and run the
   weekly disinfection (due after 7 days, completed above 62°C).

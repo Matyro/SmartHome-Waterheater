@@ -1,4 +1,4 @@
-﻿## Hot water heater automations
+﻿## Resistiv Water Heater automations
 
 Each YAML file in this folder is intended to represent **one automation**. Since these are currently managed from **Settings → Automations & scenes**, keep importing/editing them individually in the UI. Do not concatenate these files into `automations.yaml`; Home Assistant UI-managed automations also need their own stored IDs, which the UI maintains.
 
@@ -8,10 +8,10 @@ The previous 13 automations were consolidated into 4 (originals are kept in `_ol
 
 | File | Responsibility |
 | --- | --- |
-| `Water Heater - Heat Demand.yaml` | Set heat demand below 45°C, clear it above 55°C (when no disinfection is due), run the weekly disinfection (due after 7 days, completed above 62°C). |
-| `Water Heater - Heater Control.yaml` | Switch phases 1–3: Party Mode (below 55°C), or heat demand plus surplus >1200 W (phase 1) / >2300 W (phase 2) held for two minutes. Phase 3 is Party Mode only. Clears Party Mode at 55°C or higher. |
-| `Water Heater - Safety.yaml` | Shut down phases 1–3 and latch a fault above 65°C, above 10 kWh estimated energy, or on any NTC sensor fault; enforces shutdown while latched and on startup. |
-| `Water Heater - Energy Tracking.yaml` | Estimate energy from active phases every minute; reset daily at 00:01 when no fault is latched. |
+| `Resistiv Water Heater - Heat Demand.yaml` | Set heat demand below 45°C, clear it above 55°C (when no disinfection is due), run the weekly disinfection (due after 7 days, completed above 62°C). |
+| `Resistiv Water Heater - Heater Control.yaml` | Switch phases 1–3: Party Mode (below 55°C), or heat demand plus surplus >1200 W (phase 1) / >2300 W (phase 2) held for two minutes. Phase 3 is Party Mode only. Clears Party Mode at 55°C or higher. |
+| `Resistiv Water Heater - Safety.yaml` | Shut down phases 1–3 and latch a fault above 65°C, above 10 kWh estimated energy, or on any NTC sensor fault; enforces shutdown while latched and on startup. |
+| `Resistiv Water Heater - Energy Tracking.yaml` | Estimate energy from active phases every minute; reset daily at 00:01 when no fault is latched. |
 ### Helpers
 
 Create these helpers in Home Assistant and retain the entity IDs exactly:

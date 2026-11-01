@@ -1,4 +1,4 @@
-alias: Water Heater - Heater Control
+alias: Resistiv Water Heater - Heater Control
 description: >-
   Switch phases 1-3. Phases 1 and 2 run for Party Mode (below 55°C) or for heat
   demand with 2 minutes of sufficient surplus (>1200 W / >2300 W); phase 3 runs

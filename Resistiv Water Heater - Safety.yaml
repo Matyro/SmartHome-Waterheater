@@ -1,4 +1,4 @@
-alias: Water Heater - Safety
+alias: Resistiv Water Heater - Safety
 description: >-
   Shut down phases 1-3 and latch a fault above 65°C, above 10 kWh estimated
   energy, or when either NTC fault sensor is not 'off'. Also enforces the
@@ -52,7 +52,7 @@ actions:
           entity_id: input_boolean.water_heater_fault
       - action: persistent_notification.create
         data:
-          title: Water Heater Fault Latched
+          title: Resistiv Water Heater Fault Latched
           message: >-
             Heating is locked out until input_boolean.water_heater_fault is
             manually cleared. Cause:
