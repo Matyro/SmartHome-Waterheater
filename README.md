@@ -37,3 +37,7 @@ Create the Party Mode helper as a **Toggle** under **Settings → Devices & serv
 - Disinfection due status is derived directly from `input_datetime.water_heater_last_legionella_cycle`; `input_boolean.water_heater_desinfection_needed` is no longer used and can be removed from Home Assistant. If the datetime is unset or invalid, a disinfection cycle is treated as due.
 - Disinfection heating is subject to the same surplus-power thresholds as normal heating; without enough solar surplus, it waits for suitable power rather than forcing the heater on.
 - Check the actual sensor and switch entity IDs in each automation against your Home Assistant installation.
+
+### AI assistance
+
+This project was partially developed and optimized with the assistance of AI. Review and validate the automations against your Home Assistant setup before use.
