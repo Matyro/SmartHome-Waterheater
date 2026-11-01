@@ -1,0 +1,40 @@
+alias: Water Heater - Party Mode Control
+description: Control phase 3 for Party Mode; phases 1 and 2 are handled by their own controllers.
+triggers:
+  - trigger: state
+    entity_id:
+      - input_boolean.water_heater_party_mode
+      - input_boolean.water_heater_fault
+      - binary_sensor.keller_heizung_kessel_ntc_fault
+      - binary_sensor.keller_heizung_heizstab_ntc_fault
+      - sensor.keller_heizung_kessel_ntc
+  - trigger: homeassistant
+    event: start
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: input_boolean.water_heater_party_mode
+            state: 'on'
+          - condition: state
+            entity_id: input_boolean.water_heater_fault
+            state: 'off'
+          - condition: state
+            entity_id: binary_sensor.keller_heizung_kessel_ntc_fault
+            state: 'off'
+          - condition: state
+            entity_id: binary_sensor.keller_heizung_heizstab_ntc_fault
+            state: 'off'
+          - condition: numeric_state
+            entity_id: sensor.keller_heizung_kessel_ntc
+            below: 55
+        sequence:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.controllino_maxi_heater_phase_3
+    default:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.controllino_maxi_heater_phase_3
+mode: single

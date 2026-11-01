@@ -1,0 +1,41 @@
+alias: Water Heater - Fault off
+description: Turn off all heater phases and latch a fault when either sensor faults.
+triggers:
+  - trigger: state
+    entity_id: input_boolean.water_heater_fault
+  - trigger: state
+    entity_id:
+      - binary_sensor.keller_heizung_kessel_ntc_fault
+  - trigger: state
+    entity_id:
+      - binary_sensor.keller_heizung_heizstab_ntc_fault
+  - trigger: homeassistant
+    event: start
+conditions:
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: input_boolean.water_heater_fault
+        state: 'on'
+      - condition: template
+        value_template: >-
+          {{ not is_state('binary_sensor.keller_heizung_kessel_ntc_fault', 'off')
+             or not is_state('binary_sensor.keller_heizung_heizstab_ntc_fault', 'off') }}
+actions:
+  - action: switch.turn_off
+    metadata: {}
+    target:
+      entity_id:
+        - switch.controllino_maxi_heater_phase_1
+        - switch.controllino_maxi_heater_phase_2
+        - switch.controllino_maxi_heater_phase_3
+    data: {}
+  - action: input_boolean.turn_on
+    metadata: {}
+    target:
+      entity_id: input_boolean.water_heater_fault
+    data: {}
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.water_heater_party_mode
+mode: single

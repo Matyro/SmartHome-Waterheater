@@ -1,0 +1,34 @@
+alias: Water Heater - Complete Disinfection Cycle
+description: Mark disinfection complete above 62°C and record its completion time.
+triggers:
+  - trigger: state
+    entity_id: sensor.keller_heizung_kessel_ntc
+  - trigger: homeassistant
+    event: start
+conditions:
+  - condition: template
+    value_template: "{{ is_number(states('sensor.keller_heizung_kessel_ntc')) }}"
+  - condition: template
+    value_template: >-
+      {{ as_timestamp(states('input_datetime.water_heater_last_legionella_cycle'), default=0)
+         <= as_timestamp(now()) - (7 * 24 * 60 * 60) }}
+  - condition: temperature.is_value
+    target:
+      entity_id: sensor.keller_heizung_kessel_ntc
+    options:
+      threshold:
+        type: above
+        value:
+          active_choice: number
+          number: 62
+          unit_of_measurement: °C
+actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.water_heater_needs_heat
+  - action: input_datetime.set_datetime
+    target:
+      entity_id: input_datetime.water_heater_last_legionella_cycle
+    data:
+      timestamp: '{{ now().timestamp() }}'
+mode: single

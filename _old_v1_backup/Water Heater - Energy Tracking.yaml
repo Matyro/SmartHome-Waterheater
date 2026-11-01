@@ -1,0 +1,28 @@
+alias: Water Heater - Energy Tracking
+description: Add a one-minute estimate for each active 1 kW heater phase, including Party mode.
+triggers:
+  - trigger: time_pattern
+    minutes: /1
+conditions:
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: switch.controllino_maxi_heater_phase_1
+        state: 'on'
+      - condition: state
+        entity_id: switch.controllino_maxi_heater_phase_2
+        state: 'on'
+      - condition: state
+        entity_id: switch.controllino_maxi_heater_phase_3
+        state: 'on'
+actions:
+  - action: input_number.set_value
+    target:
+      entity_id: input_number.water_heater_cycle_energy_kwh
+    data:
+      value: >
+        {% set p1 = 1 if is_state('switch.controllino_maxi_heater_phase_1', 'on') else 0 %}
+        {% set p2 = 1 if is_state('switch.controllino_maxi_heater_phase_2', 'on') else 0 %}
+        {% set p3 = 1 if is_state('switch.controllino_maxi_heater_phase_3', 'on') else 0 %}
+        {{ states('input_number.water_heater_cycle_energy_kwh') | float(0) + ((p1 + p2 + p3) / 60) }}
+mode: single

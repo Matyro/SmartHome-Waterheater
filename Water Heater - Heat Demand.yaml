@@ -1,0 +1,46 @@
+alias: Water Heater - Heat Demand
+description: >-
+  Set or clear normal heat demand (below 45°C on, above 55°C off) and run the
+  weekly disinfection (due after 7 days, completed above 62°C).
+triggers:
+  - trigger: state
+    entity_id: sensor.keller_heizung_kessel_ntc
+  - trigger: time
+    at: '05:00:00'
+  - trigger: homeassistant
+    event: start
+conditions:
+  - condition: template
+    value_template: "{{ is_number(states('sensor.keller_heizung_kessel_ntc')) }}"
+variables:
+  temp: "{{ states('sensor.keller_heizung_kessel_ntc') | float }}"
+  # An unset or invalid datetime counts as due.
+  due: >-
+    {{ as_timestamp(states('input_datetime.water_heater_last_legionella_cycle'), default=0)
+       <= now().timestamp() - 7 * 24 * 3600 }}
+actions:
+  - choose:
+      - alias: Disinfection complete
+        conditions: "{{ due and temp > 62 }}"
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.water_heater_needs_heat
+          - action: input_datetime.set_datetime
+            target:
+              entity_id: input_datetime.water_heater_last_legionella_cycle
+            data:
+              timestamp: "{{ now().timestamp() }}"
+      - alias: Warm enough, no disinfection due
+        conditions: "{{ not due and temp > 55 }}"
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.water_heater_needs_heat
+      - alias: Cold or disinfection due
+        conditions: "{{ due or temp < 45 }}"
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.water_heater_needs_heat
+mode: single

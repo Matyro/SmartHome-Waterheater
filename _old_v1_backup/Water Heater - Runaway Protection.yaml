@@ -1,0 +1,41 @@
+alias: Water Heater - Runaway Protection
+description: Latch a fault if estimated heating energy exceeds the daily safety limit.
+triggers:
+  - trigger: numeric_state
+    entity_id: input_number.water_heater_cycle_energy_kwh
+    above: 10
+  - trigger: state
+    entity_id: input_number.water_heater_cycle_energy_kwh
+  - trigger: state
+    entity_id: input_boolean.water_heater_fault
+  - trigger: homeassistant
+    event: start
+conditions:
+  - condition: state
+    entity_id: input_boolean.water_heater_fault
+    state: 'off'
+  - condition: numeric_state
+    entity_id: input_number.water_heater_cycle_energy_kwh
+    above: 10
+actions:
+  - action: switch.turn_off
+    target:
+      entity_id:
+        - switch.controllino_maxi_heater_phase_1
+        - switch.controllino_maxi_heater_phase_2
+        - switch.controllino_maxi_heater_phase_3
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.water_heater_fault
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.water_heater_party_mode
+  - action: persistent_notification.create
+    data:
+      title: Water Heater Runaway Protection Triggered
+      message: >-
+        Estimated heating energy exceeded 10 kWh before the daily reset.
+        Heating is locked out until input_boolean.water_heater_fault is
+        manually cleared. Check both temperature sensors and the heater
+        switches before clearing the fault.
+mode: single

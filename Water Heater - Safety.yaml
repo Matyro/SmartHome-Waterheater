@@ -1,0 +1,64 @@
+alias: Water Heater - Safety
+description: >-
+  Shut down phases 1-3 and latch a fault above 65°C, above 10 kWh estimated
+  energy, or when either NTC fault sensor is not 'off'. Also enforces the
+  shutdown while the fault is latched and fails safe on startup.
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.keller_heizung_kessel_ntc
+    above: 65
+  - trigger: numeric_state
+    entity_id: input_number.water_heater_cycle_energy_kwh
+    above: 10
+  - trigger: state
+    entity_id:
+      - binary_sensor.keller_heizung_kessel_ntc_fault
+      - binary_sensor.keller_heizung_heizstab_ntc_fault
+    not_to: 'off'
+  # Any change, so clearing the fault re-latches it while the cause persists.
+  - trigger: state
+    entity_id: input_boolean.water_heater_fault
+  - trigger: homeassistant
+    event: start
+variables:
+  temp_high: >-
+    {{ is_number(states('sensor.keller_heizung_kessel_ntc'))
+       and states('sensor.keller_heizung_kessel_ntc') | float > 65 }}
+  energy_high: >-
+    {{ states('input_number.water_heater_cycle_energy_kwh') | float(0) > 10 }}
+  sensor_fault: >-
+    {{ not is_state('binary_sensor.keller_heizung_kessel_ntc_fault', 'off')
+       or not is_state('binary_sensor.keller_heizung_heizstab_ntc_fault', 'off') }}
+  newly_latched: "{{ is_state('input_boolean.water_heater_fault', 'off') }}"
+conditions:
+  - condition: template
+    value_template: >-
+      {{ temp_high or energy_high or sensor_fault
+         or is_state('input_boolean.water_heater_fault', 'on') }}
+actions:
+  - action: switch.turn_off
+    target:
+      entity_id:
+        - switch.controllino_maxi_heater_phase_1
+        - switch.controllino_maxi_heater_phase_2
+        - switch.controllino_maxi_heater_phase_3
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.water_heater_party_mode
+  - if: "{{ newly_latched }}"
+    then:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.water_heater_fault
+      - action: persistent_notification.create
+        data:
+          title: Water Heater Fault Latched
+          message: >-
+            Heating is locked out until input_boolean.water_heater_fault is
+            manually cleared. Cause:
+            {{ [ 'tank above 65°C' if temp_high,
+                 'estimated energy above 10 kWh' if energy_high,
+                 'NTC sensor fault' if sensor_fault ] | select | join(', ') }}.
+            Check both temperature sensors and the heater switches first.
+mode: queued
+max: 10
